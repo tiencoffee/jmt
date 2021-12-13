@@ -1,0 +1,1 @@
+(async function(){var n;n=require("https"),module.exports=function(e,o,t){var c,a;(c=/^\/api\/(.+)$/.exec(e.url))?(a="https://junmeitu.com/"+c[1],n.get(a,(n=>{var e;e="",n.on("data",(n=>{e+=n})),n.on("end",(()=>{o.end(e)}))}))):t()},process.on("uncaughtException",(function(n){console.log(n.message)}))}).call(this);
