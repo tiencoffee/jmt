@@ -62,7 +62,8 @@ function createPage props
 					@aborters.splice index, 1
 					res[type]!
 		getDom: (path) ->
-			html = await @fetch "api/#path" \text
+			query = encodeURIComponent path
+			html = await @fetch "api/mware?q=#query" \text
 			new DOMParser!parseFromString html, \text/html
 		abort: !->
 			for aborter in @aborters
@@ -193,7 +194,8 @@ Album = createPage do
 			if @album.photos[i] is void
 				@album.photos[i] = no
 				importance = i is index and \high or \low
-				url = "api/ajax_beauty/#{@album.name}-#{i + 1}.html?ajax=1&catid=#{@album.catid}&conid=#{@album.conid}&#importance"
+				query = encodeURIComponent "ajax_beauty/#{@album.name}-#{i + 1}.html?ajax=1&catid=#{@album.catid}&conid=#{@album.conid}"
+				url = "api/mware?q=#query"
 				promise = @fetch url,
 					importance: importance
 					\json
@@ -232,8 +234,8 @@ Album = createPage do
 		@goto @album.index + 1
 
 	onclickGoto: !->
-		index = +prompt "Nhập trang (#{@album.index + 1} / #{@album.total}):"
-		if index--
+		if index = await app.openInput "Nhập trang (#{@album.index + 1} / #{@album.total}):"
+			index--
 			if 0 <= index <= @album.total - 1
 				@goto index
 		@closeMenu!
@@ -298,9 +300,9 @@ Album = createPage do
 								album: album
 						m \img.w100.h100.obct,
 							src: album.thumb
-			m \.row.wra.act.tac,
+			m \.row.wra.tac,
 				m \.c4
-				m \.c4.py4.toe,
+				m \.c4.py4.act.toe,
 					onclick: @onclickGoto
 					"Đến trang..."
 
@@ -493,8 +495,8 @@ Models = createPage do
 				"home"
 			m \.c4.py4.act.toe,
 				onclick: !~>
-					index = +prompt "Nhập trang (#{app.model.index + 1} / #{app.model.total}):"
-					if index--
+					if index = await app.openInput "Nhập trang (#{app.model.index + 1} / #{app.model.total}):"
+						index--
 						if 0 <= index <= app.model.total - 1
 							@goto index
 					@closeMenu!
@@ -560,8 +562,8 @@ Home = createPage do
 				"model"
 			m \.c4.py4.act.toe,
 				onclick: !~>
-					index = +prompt "Nhập trang (#{app.home.index + 1} / #{app.home.total}):"
-					if index--
+					if index = await app.openInput "Nhập trang (#{app.home.index + 1} / #{app.home.total}):"
+						index--
 						if 0 <= index <= app.home.total - 1
 							@goto index
 					@closeMenu!
@@ -585,6 +587,7 @@ App = createComp do
 		@index = -1
 		@albums = {}
 		@models = {}
+		@input = void
 		@home =
 			pages: []
 			index: 0
@@ -681,6 +684,19 @@ App = createComp do
 		animEl.onanimationend = animEl~remove
 		document.body.appendChild animEl
 
+	openInput: (title = "") ->
+		new Promise (resolve) !~>
+			@input =
+				title: title
+				val: ""
+				resolve: resolve
+			m.redraw!
+
+	closeInput: (val) !->
+		@input.resolve val
+		@input = void
+		m.redraw!
+
 	ontouchstart: (event) !->
 		if el = event.target.closest \.act
 			@mark el
@@ -690,6 +706,31 @@ App = createComp do
 			event.preventDefault!
 
 	view: ->
-		m \#pageEl
+		m.fragment do
+			m \#pageEl
+			if @input
+				m \.ful.fix.col.tac.bg0,
+					m \.c.ccm.px4,
+						onclick: (event) !~>
+							@closeInput!
+						m \div,
+							@input.title
+						m \.mt4.fz6,
+							@input.val or \\xa0
+					m \.row.wra.fz3,
+						[7 8 9 4 5 6 1 2 3 0]map (num) ~>
+							m \.c4.py4.act,
+								onclick: !~>
+									@input.val += num
+								num
+						m \.c4.py4.act,
+							onclick: !~>
+								@closeInput +@input.val
+							"OK"
+						m \.c4.py4.act,
+							disabled: not @input.val
+							onclick: !~>
+								@input.val .= slice 0 -1
+							"<=="
 
 m.mount appEl, App

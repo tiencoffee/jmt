@@ -1,16 +1,22 @@
 require! {
 	https
+	url
 }
 
 module.exports = (req, res, next) !->
-	if ma = /^\/api\/(.+)$/exec req.url
-		url = "https://junmeitu.com/#{ma.1}"
-		https.get url, (resp) !~>
-			data = ""
-			resp.on \data (chunk) !~>
-				data += chunk
-			resp.on \end !~>
-				res.end data
+	{pathname, query} = url.parse req.url, yes
+	if pathname is \/api/mware
+		if q = query.q
+			q = decodeURIComponent q
+			q = "https://junmeitu.com/#q"
+			https.get q, (resp) !~>
+				data = ""
+				resp.on \data (chunk) !~>
+					data += chunk
+				resp.on \end !~>
+					res.end data
+		else
+			next!
 	else
 		next!
 
