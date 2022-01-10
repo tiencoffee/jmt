@@ -194,13 +194,14 @@ Album = createPage do
 		@album.index = index
 		min = app.clamp index - 3 0 @album.total - 1
 		max = app.clamp index + 3 0 @album.total - 1
+		promises = []
 		for let i from min to max
 			if @album.photos[i] is void
 				@album.photos[i] = no
 				importance = i is index and \high or \low
 				query = encodeURIComponent "ajax_beauty/#{@album.name}-#{i + 1}.html?ajax=1&catid=#{@album.catid}&conid=#{@album.conid}"
 				url = "api/mware?q=#query"
-				@fetch url,
+				promise = @fetch url,
 					importance: importance
 					\json
 				.then (data) !~>
@@ -217,6 +218,8 @@ Album = createPage do
 						m.redraw!
 				.catch (err) !~>
 					delete @album.photos[i]
+				promises.push promise
+		Promise.allSettled promises
 		m.redraw!
 
 	disabledPrev: ->
