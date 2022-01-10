@@ -192,8 +192,8 @@ Album = createPage do
 
 	goto: (index) !->
 		@album.index = index
-		min = app.clamp index - 2 0 @album.total - 1
-		max = app.clamp index + 2 0 @album.total - 1
+		min = app.clamp index - 3 0 @album.total - 1
+		max = app.clamp index + 3 0 @album.total - 1
 		promises = []
 		for let i from min to max
 			if @album.photos[i] is void
