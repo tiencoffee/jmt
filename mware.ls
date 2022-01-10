@@ -16,9 +16,9 @@ module.exports = (req, res, next) !->
 				resp.on \end !~>
 					res.end data
 		else
-			next!
+			next?!
 	else
-		next!
+		next?!
 
 process.on \uncaughtException (err) !->
 	console.log err.message

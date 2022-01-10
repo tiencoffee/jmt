@@ -314,7 +314,7 @@ Album = createPage do
 		"#{@album.index + 1} / #{@album.total}"
 
 	menuView: ->
-		m \.col.gy3,
+		m \.col.gy2,
 			m \.px2,
 				@album.name
 			m \.row.wra,
@@ -696,7 +696,7 @@ Tag = createPage do
 		"#{@tag.index + 1} / #{@tag.total}"
 
 	menuView: ->
-		m \.row.wra.mid.gy3.pb3.px2,
+		m \.row.wra.mid.gy3.pb3.px2.tac,
 			m \.c6,
 				m \img.obcv,
 					src: @tag.thumb
@@ -706,6 +706,15 @@ Tag = createPage do
 				@tag.name
 			m \.c12,
 				@tag.text
+			m \.c4
+			m \.c4.py4.act.toe,
+				onclick: !~>
+					if index = await app.openInput "Nhập trang (#{@tag.index + 1} / #{@tag.total}):"
+						index--
+						if 0 <= index <= @tag.total - 1
+							@goto index
+					@closeMenu!
+				"Đến trang..."
 
 	view: ->
 		albums = @tag.pages[@tag.index]
@@ -729,9 +738,10 @@ Home = createPage do
 		await @goto app.home.index
 		m.redraw!
 
-	goto: (index) !->
+	goto: (index, loadOnly) !->
 		@abort!
-		app.home.index = index
+		unless loadOnly
+			app.home.index = index
 		unless app.home.pages[index]
 			@load yes
 			dom = await @getDom "beauty/index-#{index + 1}.html"
@@ -766,19 +776,37 @@ Home = createPage do
 
 	menuView: ->
 		m \.row.wra.tac,
-			m \.c4.py4.act,
+			m \.c4.rcm.h80p.act,
+				onclick: !~>
+					@closeMenu!
+					index = app.rand 0 app.home.total - 1
+					@goto index
+				"Trang ngẫu nhiên"
+			m \.c4.rcm.h80p.act,
+				onclick: !~>
+					@closeMenu!
+					index = app.rand 0 app.home.total - 1
+					await @goto index
+					pages = app.home.pages[index]
+					index = app.rand 0 pages.length - 1
+					album = pages[index]
+					app.push Album,
+						album: album
+				"Album ngẫu nhiên"
+			m \.c4
+			m \.c4.rcm.h80p.act,
 				onclick: !~>
 					app.push Models
 				"model"
-			m \.c4.py4.act.toe,
+			m \.c4.rcm.h80p.act.toe,
 				onclick: !~>
+					@closeMenu!
 					if index = await app.openInput "Nhập trang (#{app.home.index + 1} / #{app.home.total}):"
 						index--
 						if 0 <= index <= app.home.total - 1
 							@goto index
-					@closeMenu!
 				"Đến trang..."
-			m \.c4.py4.act,
+			m \.c4.rcm.h80p.act,
 				onclick: !~>
 					app.push Tags
 				"tags"
@@ -840,6 +868,9 @@ App = createComp do
 		num = min if num < min
 		num = max if num > max
 		num
+
+	rand: (min, max) ->
+		Math.floor min + Math.random! * (max + 1 - min)
 
 	push: (comp, page = {}) !->
 		page.comp = comp
