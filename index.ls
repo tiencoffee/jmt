@@ -100,11 +100,7 @@ function createPage props
 											onclick: !~>
 												app.push Recent
 											"Gần đây"
-										m \.c4.rcm.h80p.px2.act,
-											onclick: !~>
-												@closeMenu!
-												app.promptPreloadPhotoNum!
-											"Tải trước ảnh: #{app.preloadPhotoNum}"
+										m \.c4
 										m \.c4
 										m \.c4.rcm.h80p.px2.act,
 											disabled: app.page.comp is Models
@@ -345,6 +341,13 @@ Album = createPage do
 			@indexGoto = void
 			@percGoto = void
 
+	promptPreloadPhotoNum: !->
+		if num = prompt "Nhập số ảnh tải trước khi xem album (0-200):" app.preloadPhotoNum
+			num = +num.trim!
+			if Number.isFinite num
+				app.preloadPhotoNum = app.clamp num, 0 200
+				@goto @album.index
+
 	navMenuView: ->
 		"#{@album.index + 1} / #{@album.total}"
 
@@ -379,6 +382,11 @@ Album = createPage do
 				m \.c4.py4.act.toe,
 					onclick: @onclickGoto
 					"Đến trang..."
+				m \.c4.rcm.h80p.px2.act,
+					onclick: !~>
+						@closeMenu!
+						@promptPreloadPhotoNum!
+					"Tải trước ảnh: #{app.preloadPhotoNum}"
 
 	view: ->
 		photo = if @hasGoto and @willGoto => @photoGoto else @album.photos[@album.index]
@@ -1088,12 +1096,6 @@ App = createComp do
 				cancelAnimationFrame @qrcode.raf
 			@qrcode = void
 			m.redraw!
-
-	promptPreloadPhotoNum: !->
-		if num = prompt "Nhập số ảnh tải trước khi xem album (0-200):" @preloadPhotoNum
-			num = +num.trim!
-			if Number.isFinite num
-				@preloadPhotoNum = app.clamp num, 0 200
 
 	ontouchstart: (event) !->
 		if el = event.target.closest \.act
