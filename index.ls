@@ -85,13 +85,38 @@ function createPage props
 						props.view.call @
 				m \.ful.col.end.pen,
 					if @isOpenMenu
-						m \.c.col.end.rel.pea,
+						m \.c.rel.ova.pea,
 							key: \menu
-							m \.ful.bg0.op50,
-								ontouchmove: @closeMenu
-								onclick: @closeMenu
-							m \.pt3.bt3.bg0.z0,
-								m \.rel,
+							oncreate: (vnode) !~>
+								vnode.dom.scrollTop = 9999
+							m \.col.end.mih100.z1,
+								m \.c.bg0.op50,
+									ontouchmove: @closeMenu
+									onclick: @closeMenu
+								m \.pt3.bt3.bg0,
+									m \.row.wra.tac,
+										m \.c4.rcm.h80p.px2.act,
+											disabled: app.page.comp is Tags
+											onclick: !~>
+												app.push Recent
+											"Gần đây"
+										m \.c4
+										m \.c4
+										m \.c4.rcm.h80p.px2.act,
+											disabled: app.page.comp is Models
+											onclick: !~>
+												app.push Models
+											"Models"
+										m \.c4.rcm.h80p.px2.act,
+											disabled: app.page.comp is Home
+											onclick: !~>
+												app.push Home
+											"Home"
+										m \.c4.rcm.h80p.px2.act,
+											disabled: app.page.comp is Tags
+											onclick: !~>
+												app.push Tags
+											"Tags"
 									@menuView?!
 					m \.row.fz3.tac.bg0.pea,
 						key: \navbar
@@ -148,6 +173,7 @@ Album = createPage do
 		@photoGoto = void
 		@indexGoto = void
 		@percGoto = void
+		app.addRecent @album
 
 	oncreate: !->
 		await @loadDetails!
@@ -183,11 +209,15 @@ Album = createPage do
 				if i < 8
 					a = dd.firstElementChild
 					name = /\/beauty\/(.+?)\.html/exec a.href .1
-					unless album = app.albums[name]
-						thumb = a.firstElementChild.src
-						album = app.createAlbum name, thumb
-						app.albums[name] = album
+					thumb = a.firstElementChild.src
+					album = app.addOrUpdateAlbum name, thumb
 					@album.others.push album
+				else
+					break
+			unless @album.thumb
+				if el = dom.querySelector \.con_img
+					@album.thumb = el.src
+					app.saveRecents!
 			@load!
 
 	goto: (index) !->
@@ -353,19 +383,13 @@ Album = createPage do
 				onscroll: @onscrollViewer
 				if photo
 					isRotate = (photo.width / photo.height > 1.2) - photo.isRotate
-					if isRotate
-						m \img.Album__photo.Album__photo--isRotate,
-							class: app.class do
-								"Album__photo--isScale": photo.isScale
-							src: photo.src
-							width: innerHeight
-							onload: @onloadPhoto
-					else
-						m \img.Album__photo.Album__photo--noRotate,
-							class: app.class do
-								"Album__photo--isScale": photo.isScale
-							src: photo.src
-							onload: @onloadPhoto
+					isScale = photo.isScale
+					m \img.Album__photo,
+						class: app.class do
+							"Album__photo--rotate-#{+!!isRotate}"
+							"Album__photo--scale-#{+!!isScale}"
+						src: photo.src
+						onload: @onloadPhoto
 				else if photo is 0
 					m \.ful.ccm,
 						"Ảnh lỗi!"
@@ -506,10 +530,8 @@ Model = createPage do
 			for li in dom.querySelectorAll \.pic-list>.clearfix>li
 				a = li.firstElementChild
 				name = /\/beauty\/(.+?)\.html/exec a.href .1
-				unless album = app.albums[name]
-					thumb = a.firstElementChild.src
-					album = app.createAlbum name, thumb
-					app.albums[name] = album
+				thumb = a.firstElementChild.src
+				album = app.addOrUpdateAlbum name, thumb
 				albums.push album
 			@model.pages[index] = albums
 		@load!
@@ -671,10 +693,8 @@ Tag = createPage do
 			for li in dom.querySelectorAll \.pic-list>.clearfix>li
 				a = li.firstElementChild
 				name = /\/beauty\/(.+?)\.html/exec a.href .1
-				unless album = app.albums[name]
-					thumb = a.firstElementChild.src
-					album = app.createAlbum name, thumb
-					app.albums[name] = album
+				thumb = a.firstElementChild.src
+				album = app.addOrUpdateAlbum name, thumb
 				albums.push album
 			@tag.pages[index] = albums
 		@load!
@@ -733,6 +753,24 @@ Tag = createPage do
 				m \.c.ccm,
 					"Không có album nào"
 
+Recent = createPage do
+	view: ->
+		m \.col.mih100,
+			m \.py2.tac,
+				"Gần đây: #{app.recents.length} album"
+			if app.recents.length
+				m \.row.wra.pb8,
+					app.recents.map (album) ~>
+						m \.c3.ar69,
+							onclick: (event) !~>
+								app.push Album,
+									album: album
+							m \img.w100.h100.obct,
+								src: album.thumb
+			else
+				m \.c.ccm,
+					"Không có album nào"
+
 Home = createPage do
 	oncreate: !->
 		await @goto app.home.index
@@ -750,10 +788,8 @@ Home = createPage do
 			for li in dom.querySelectorAll \#list>li
 				a = li.firstElementChild
 				name = /\/beauty\/(.+?)\.html/exec a.href .1
-				unless album = app.albums[name]
-					thumb = a.firstElementChild.src
-					album = app.createAlbum name, thumb
-					app.albums[name] = album
+				thumb = a.firstElementChild.src
+				album = app.addOrUpdateAlbum name, thumb
 				albums.push album
 			app.home.pages[index] = albums
 		@load!
@@ -776,15 +812,14 @@ Home = createPage do
 
 	menuView: ->
 		m \.row.wra.tac,
-			m \.c4.rcm.h80p.act,
+			m \.c4.rcm.h80p.px2.act,
 				onclick: !~>
 					@closeMenu!
 					index = app.rand 0 app.home.total - 1
 					@goto index
 				"Trang ngẫu nhiên"
-			m \.c4.rcm.h80p.act,
+			m \.c4.rcm.h80p.px2.act,
 				onclick: !~>
-					@closeMenu!
 					index = app.rand 0 app.home.total - 1
 					await @goto index
 					pages = app.home.pages[index]
@@ -793,12 +828,17 @@ Home = createPage do
 					app.push Album,
 						album: album
 				"Album ngẫu nhiên"
-			m \.c4
-			m \.c4.rcm.h80p.act,
+			m \.c4.rcm.h80p.px2.act,
+				disabled: not window.BarcodeDetector
+				onclick: !~>
+					@closeMenu!
+					app.openQrcode!
+				"Quét QR"
+			m \.c4.rcm.h80p.px2.act,
 				onclick: !~>
 					app.push Models
 				"model"
-			m \.c4.rcm.h80p.act.toe,
+			m \.c4.rcm.h80p.px2.act.toe,
 				onclick: !~>
 					@closeMenu!
 					if index = await app.openInput "Nhập trang (#{app.home.index + 1} / #{app.home.total}):"
@@ -806,7 +846,7 @@ Home = createPage do
 						if 0 <= index <= app.home.total - 1
 							@goto index
 				"Đến trang..."
-			m \.c4.rcm.h80p.act,
+			m \.c4.rcm.h80p.px2.act,
 				onclick: !~>
 					app.push Tags
 				"tags"
@@ -831,6 +871,7 @@ App = createComp do
 		@models = {}
 		@tags = {}
 		@input = void
+		@qrcode = void
 		@home =
 			pages: []
 			index: 0
@@ -843,6 +884,7 @@ App = createComp do
 			pages: []
 			index: 0
 			total: 0
+		@loadRecents!
 
 	oncreate: !->
 		addEventListener \pointerdown @ontouchstart
@@ -939,6 +981,44 @@ App = createComp do
 		isScale: no
 		isRotate: no
 
+	addOrUpdateAlbum: (name, thumb) ->
+		album = @albums[name]
+		if album
+			if thumb
+				album.thumb = thumb
+		else
+			album = @createAlbum name, thumb
+			@albums[name] = album
+		album
+
+	addRecent: (album) !->
+		index = @recents.indexOf album
+		if index >= 0
+			@recents.splice index, 1
+		@recents.unshift album
+		if @recents.length > 100
+			@recents.pop!
+		@saveRecents!
+
+	loadRecents: !->
+		@recents = []
+		if localStorage.jmtRecents
+			try
+				data = JSON.parse localStorage.jmtRecents
+				for [name, thumb] in data
+					album = @createAlbum name, thumb
+					@albums[name] = album
+					@recents.push album
+
+	saveRecents: !->
+		data = @recents.map (album) ~>
+			item = [album.name]
+			if album.thumb
+				item.1 = album.thumb
+			item
+		data = JSON.stringify data
+		localStorage.jmtRecents = data
+
 	mark: (x, y, width, height) !->
 		if x instanceof Element
 			{x, y, width, height} = x.getBoundingClientRect!
@@ -964,6 +1044,44 @@ App = createComp do
 		@input.resolve val
 		@input = void
 		m.redraw!
+
+	openQrcode: !->
+		@qrcode = {}
+		m.redraw.sync!
+		try
+			@qrcode.stream = await navigator.mediaDevices.getUserMedia do
+				video:
+					facingMode: \environment
+			videoQrcodeEl.srcObject = @qrcode.stream
+			videoQrcodeEl.autoplay = yes
+			videoQrcodeEl.onplay = !~>
+				detector = new BarcodeDetector do
+					formats: [\qr_code]
+				do anim = !~>
+					[qrcode] = await detector.detect videoQrcodeEl
+					if qrcode
+						if matches = /\/beauty\/(.+?)(?:-(\d+))?\.html/exec qrcode.rawValue
+							[, name, index] = matches
+							album = @albums[name] or @createAlbum name
+							album.index = index - 1 if index
+							app.albums[name] = album
+							@push Album,
+								album: album
+							@closeQrcode!
+							return
+					@qrcode.raf = requestAnimationFrame anim
+		catch
+			alert e.message
+
+	closeQrcode: !->
+		if @qrcode
+			if @qrcode.stream
+				@qrcode.stream.getTracks!forEach (.stop!)
+				videoQrcodeEl.srcObject = null
+			if @qrcode.raf
+				cancelAnimationFrame @qrcode.raf
+			@qrcode = void
+			m.redraw!
 
 	ontouchstart: (event) !->
 		if el = event.target.closest \.act
@@ -1000,5 +1118,12 @@ App = createComp do
 							onclick: !~>
 								@input.val .= slice 0 -1
 							"<=="
+			if @qrcode
+				m \.ful.fix.ccm.bg0,
+					m \.c.pt8,
+						m \video#videoQrcodeEl
+					m \.p4.act,
+						onclick: @closeQrcode
+						"Đóng"
 
 m.mount appEl, App

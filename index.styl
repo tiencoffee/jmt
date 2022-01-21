@@ -26,35 +26,6 @@ img
 	opacity .5
 	pointer-events none
 
-.gotoSlider
-	position relative
-	left 0
-	top 55%
-	width 24px
-	height calc(45% - 90px)
-.gotoSliderTooltip
-	position absolute
-	left 80px
-	padding 8px 16px
-	border solid 1px grays[3]
-	white-space nowrap
-	background #000
-	transform translateY(-50%)
-	pointer-events none
-
-.Album__photo
-	transform-origin left top
-.Album__photo--isRotate
-	margin-right -9999px
-	margin-bottom -9999px
-	transform rotate(90deg) translateY(-100%)
-	&.Album__photo--isScale
-		transform rotate(90deg) scale(1.25) translateY(-100%)
-.Album__photo--noRotate
-	max-height 100%
-	&.Album__photo--isScale
-		transform scale(1.25)
-
 .ful
 	position absolute
 	left 0
@@ -85,6 +56,8 @@ for p, prop in props
 			{prop} (size)%
 	.{p}a
 		{prop} auto
+.w80p
+	width 80px
 .h80p
 	height 80px
 
@@ -191,6 +164,11 @@ for s, side in sides
 .wsnw
 	white-space nowrap
 
+.tru
+	text-overflow ellipsis
+	white-space nowrap
+	overflow hidden
+
 for color, i in grays
 	.bg{i}
 		background-color color
@@ -250,3 +228,37 @@ for i in 0..10
 	to
 		transform scale(.85)
 		opacity 0
+
+.gotoSlider
+	position relative
+	left 0
+	top 55%
+	width 24px
+	height calc(45% - 90px)
+.gotoSliderTooltip
+	position absolute
+	left 80px
+	padding 8px 16px
+	border solid 1px grays[3]
+	white-space nowrap
+	background #000
+	transform translateY(-50%)
+	pointer-events none
+
+.Album__photo
+	margin-right -9999px
+	margin-bottom -9999px
+	transform-origin left top
+.Album__photo--rotate-1
+	width 100vh
+	transform rotate(90deg) translateY(-100%)
+	&.Album__photo--scale-1
+		transform rotate(90deg) scale(1.25) translateY(-100%)
+.Album__photo--rotate-0
+	height 100vh
+	&.Album__photo--scale-1
+		transform scale(1.25)
+
+#videoQrcodeEl
+	max-width 100%
+	max-height 100%
