@@ -215,7 +215,7 @@ Album = createPage do
 				else
 					break
 			unless @album.thumb
-				if el = dom.querySelector \.con_img
+				if el = dom.querySelector \.pictures>img
 					@album.thumb = el.src
 					app.saveRecents!
 			@load!
