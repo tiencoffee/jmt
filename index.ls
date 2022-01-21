@@ -100,7 +100,11 @@ function createPage props
 											onclick: !~>
 												app.push Recent
 											"Gần đây"
-										m \.c4
+										m \.c4.rcm.h80p.px2.act,
+											onclick: !~>
+												@closeMenu!
+												app.promptPreloadPhotoNum!
+											"Tải trước ảnh: #{app.preloadPhotoNum}"
 										m \.c4
 										m \.c4.rcm.h80p.px2.act,
 											disabled: app.page.comp is Models
@@ -222,8 +226,9 @@ Album = createPage do
 
 	goto: (index) !->
 		@album.index = index
-		min = app.clamp index - 3 0 @album.total - 1
-		max = app.clamp index + 3 0 @album.total - 1
+		num = Math.floor app.preloadPhotoNum / 2
+		min = app.clamp index - num, 0 @album.total - 1
+		max = app.clamp index + num, 0 @album.total - 1
 		promises = []
 		for let i from min to max
 			if @album.photos[i] is void
@@ -870,6 +875,7 @@ App = createComp do
 		@albums = {}
 		@models = {}
 		@tags = {}
+		@preloadPhotoNum = 40
 		@input = void
 		@qrcode = void
 		@home =
@@ -1082,6 +1088,12 @@ App = createComp do
 				cancelAnimationFrame @qrcode.raf
 			@qrcode = void
 			m.redraw!
+
+	promptPreloadPhotoNum: !->
+		if num = prompt "Nhập số ảnh tải trước khi xem album (0-200):" @preloadPhotoNum
+			num = +num.trim!
+			if Number.isFinite num
+				@preloadPhotoNum = app.clamp num, 0 200
 
 	ontouchstart: (event) !->
 		if el = event.target.closest \.act
