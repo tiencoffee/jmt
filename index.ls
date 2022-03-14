@@ -883,7 +883,7 @@ App = createComp do
 		@albums = {}
 		@models = {}
 		@tags = {}
-		@preloadPhotoNum = 40
+		@preloadPhotoNum = 20
 		@input = void
 		@qrcode = void
 		@home =
@@ -898,6 +898,11 @@ App = createComp do
 			pages: []
 			index: 0
 			total: 0
+		@compressMap =
+			"^": \https://i.wujituku.com/jmt/mm/20
+			"~": \https://i.wujituku.com/jmt/nvshen/20
+			"%": \/thumb_0_500_
+			"$": \.jpg
 		@loadRecents!
 
 	oncreate: !->
@@ -1010,7 +1015,7 @@ App = createComp do
 		if index >= 0
 			@recents.splice index, 1
 		@recents.unshift album
-		if @recents.length > 100
+		if @recents.length > 1000
 			@recents.pop!
 		@saveRecents!
 
@@ -1020,6 +1025,9 @@ App = createComp do
 			try
 				data = JSON.parse localStorage.jmtRecents
 				for [name, thumb] in data
+					if thumb
+						for k, val of @compressMap
+							thumb .= replace k, val
 					album = @createAlbum name, thumb
 					@albums[name] = album
 					@recents.push album
@@ -1027,8 +1035,10 @@ App = createComp do
 	saveRecents: !->
 		data = @recents.map (album) ~>
 			item = [album.name]
-			if album.thumb
-				item.1 = album.thumb
+			if thumb = album.thumb
+				for k, val of @compressMap
+					thumb .= replace val, k
+				item.1 = thumb
 			item
 		data = JSON.stringify data
 		localStorage.jmtRecents = data
