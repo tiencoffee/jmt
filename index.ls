@@ -780,6 +780,7 @@ Recent = createPage do
 									album: album
 							m \img.w100.h100.obct,
 								src: album.thumb
+								loading: \lazy
 			else
 				m \.c.ccm,
 					"Không có album nào"
