@@ -209,7 +209,7 @@ Album = createPage do
 				if i < 8
 					a = dd.firstElementChild
 					name = /\/beauty\/(.+?)\.html/exec a.href .1
-					thumb = a.firstElementChild.src
+					thumb = a.firstElementChild.dataset.src
 					album = app.addOrUpdateAlbum name, thumb
 					@album.others.push album
 				else
