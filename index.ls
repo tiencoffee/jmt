@@ -101,7 +101,12 @@ function createPage props
 												app.push Recent
 											"Gần đây"
 										m \.c4
-										m \.c4
+										m \.c4.rcm.h80p.px2.act,
+											disabled: not window.BarcodeDetector
+											onclick: !~>
+												@closeMenu!
+												app.openQrcode!
+											"Quét QR"
 										m \.c4.rcm.h80p.px2.act,
 											disabled: app.page.comp is Models
 											onclick: !~>
@@ -842,12 +847,7 @@ Home = createPage do
 					app.push Album,
 						album: album
 				"Album ngẫu nhiên"
-			m \.c4.rcm.h80p.px2.act,
-				disabled: not window.BarcodeDetector
-				onclick: !~>
-					@closeMenu!
-					app.openQrcode!
-				"Quét QR"
+			m \.c4.rcm.h80p.px2
 			m \.c4.rcm.h80p.px2.act,
 				onclick: !~>
 					app.push Models
