@@ -95,6 +95,28 @@ function createPage props
 									onclick: @closeMenu
 								m \.pt3.bt3.bg0,
 									m \.row.wra.tac,
+										m \.c4
+										m \.c4.rcm.h80p.px2.act,
+											onclick: !~>
+												text = await app.stringifyRecents @recents
+												try
+													await navigator.clipboard.writeText text
+													alert "Đã sao chép gần đây"
+												catch
+													alert e.message
+											"Sao chép gần đây"
+										m \.c4.rcm.h80p.px2.act,
+											onclick: !~>
+												if confirm "Chắc chắn muốn nhập thêm các mục đã sao chép vào gần đây?"
+													try
+														text = await navigator.clipboard.readText!
+														recents = await app.parseRecents text
+														for recent in recents
+															app.addRecent recent
+														@saveRecents!
+													catch
+														alert e.message
+											"Nhập thêm gần đây"
 										m \.c4.rcm.h80p.px2.act,
 											disabled: app.page.comp is Tags
 											onclick: !~>
@@ -1022,23 +1044,20 @@ App = createComp do
 			@recents.pop!
 		@saveRecents!
 
-	loadRecents: !->
-		@recents = []
-		@recentsSize = 0
-		if text = localStorage.jmtRecents
-			try
-				data = JSON.parse text
-				for [name, thumb] in data
-					if thumb
-						for k, val of @compressMap
-							thumb .= replace k, val
-					album = @createAlbum name, thumb
-					@albums[name] = album
-					@recents.push album
-				@recentsSize = text.length
+	parseRecents: (text) ->
+		recents = []
+		if text
+			data = JSON.parse text
+			for [name, thumb] in data
+				if thumb
+					for k, val of @compressMap
+						thumb .= replace k, val
+				album = @createAlbum name, thumb
+				recents.push album
+		recents
 
-	saveRecents: !->
-		data = @recents.map (album) ~>
+	stringifyRecents: (recents) ->
+		data = recents.map (album) ~>
 			item = [album.name]
 			if thumb = album.thumb
 				for k, val of @compressMap
@@ -1046,6 +1065,21 @@ App = createComp do
 				item.1 = thumb
 			item
 		text = JSON.stringify data
+		text
+
+	loadRecents: !->
+		@recents = []
+		@recentsSize = 0
+		if text = localStorage.jmtRecents
+			try
+				recents = await @parseRecents text
+				for recent in recents
+					@albums[recent.name] = recent
+					@recents.push recent
+				@recentsSize = text.length
+
+	saveRecents: !->
+		text = await @stringifyRecents @recents
 		@recentsSize = text.length
 		localStorage.jmtRecents = text
 
