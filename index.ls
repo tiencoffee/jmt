@@ -106,7 +106,7 @@ function createPage props
 															if recents.length
 																text = await app.stringifyRecents recents
 																await navigator.clipboard.writeText text
-																alert "Đã sao chép gần đây"
+																alert "Đã sao chép gần đây: #{recents.length} album"
 															else
 																alert "Phạm vi nằm ngoài danh sách"
 														else
@@ -116,17 +116,17 @@ function createPage props
 											"Sao chép gần đây"
 										m \.c4.rcm.h80p.px2.act,
 											onclick: !~>
-												if confirm "Chắc chắn muốn nhập thêm các mục đã sao chép vào gần đây?"
-													try
-														text = await navigator.clipboard.readText!
-														recents = await app.parseRecents text
+												try
+													text = await navigator.clipboard.readText!
+													recents = await app.parseRecents text
+													if confirm "Chắc chắn muốn nhập thêm #{recents.length} album đã sao chép vào gần đây?"
 														for recent in recents
 															app.addRecent recent, yes
 														@saveRecents!
-														alert "Đã thêm các mục vào gần đây thành công"
+														alert "Đã thêm #{recents.length} album vào gần đây thành công"
 														m.redraw!
-													catch
-														alert e.message
+												catch
+													alert e.message
 											"Nhập thêm gần đây"
 										m \.c4.rcm.h80p.px2.act,
 											disabled: app.page.comp is Tags
