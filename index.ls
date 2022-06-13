@@ -95,13 +95,34 @@ function createPage props
 									onclick: @closeMenu
 								m \.pt3.bt3.bg0,
 									m \.row.wra.tac,
-										m \.c4
+										m \.c4.rcm.h80p.px2.act,
+											onclick: !~>
+												if text = prompt "Nhập phạm vi muốn mở (start end):"
+													if /^\d+ \d+$/test text
+														[start, end] = text.split " "
+														+= start
+														end++
+														recents = app.recents.slice start, end
+														if confirm "Xem từ mới đến cũ?"
+															recents.reverse!
+														if recents.length
+															for recent, i in recents
+																app.push Album,
+																	album: recent
+																	i < recents.length - 1
+														else
+															alert "Phạm vi nằm ngoài danh sách"
+													else
+														alert "Cú pháp không đúng"
+											"Mở lại gần đây"
 										m \.c4.rcm.h80p.px2.act,
 											onclick: !~>
 												try
 													if text = prompt "Nhập phạm vi muốn sao chép (start end):"
 														if /^\d+ \d+$/test text
 															[start, end] = text.split " "
+															+= start
+															end++
 															recents = app.recents.slice start, end .reverse!
 															if recents.length
 																text = await app.stringifyRecents recents
@@ -976,15 +997,16 @@ App = createComp do
 	rand: (min, max) ->
 		Math.floor min + Math.random! * (max + 1 - min)
 
-	push: (comp, page = {}) !->
+	push: (comp, page = {}, noMount) !->
 		page.comp = comp
 		@pages.splice @index + 1 9e9 page
 		@index = @pages.length - 1
 		@page = page
-		m.mount pageEl,
-			view: ~>
-				m comp, page
-		m.redraw!
+		unless noMount
+			m.mount pageEl,
+				view: ~>
+					m comp, page
+			m.redraw!
 
 	back: !->
 		if @index > 0
@@ -1209,4 +1231,4 @@ App = createComp do
 						onclick: @closeQrcode
 						"Đóng"
 
-m.mount appEl, App
+m.mount document.body, App
