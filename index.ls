@@ -106,7 +106,7 @@ function createPage props
 															if recents.length
 																text = await app.stringifyRecents recents
 																await navigator.clipboard.writeText text
-																alert "Đã sao chép gần đây: #{recents.length} album"
+																alert "Đã sao chép #{recents.length} album gần đây"
 															else
 																alert "Phạm vi nằm ngoài danh sách"
 														else
@@ -123,6 +123,7 @@ function createPage props
 														for recent in recents
 															app.addRecent recent, yes
 														@saveRecents!
+														await navigator.clipboard.writeText ""
 														alert "Đã thêm #{recents.length} album vào gần đây thành công"
 														m.redraw!
 												catch
