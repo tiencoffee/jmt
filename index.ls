@@ -371,7 +371,7 @@ Album = createPage do
 							width: 64
 							height: 64
 						model.name
-			m \.row.wra.g2.px2.co3,
+			m \.row.wra.px2.co3,
 				m \.c6,
 					"Ngày: #{@album.time}"
 			m \.row.wra,
@@ -775,7 +775,7 @@ Recent = createPage do
 	view: ->
 		m \.col.mih100,
 			m \.py2.tac,
-				"Gần đây: #{app.recents.length} album"
+				"Gần đây: #{app.recents.length} album (#{Math.floor app.recentsSize / 1024} KiB)"
 			if app.recents.length
 				m \.row.wra.pb8,
 					app.recents.map (album) ~>
@@ -884,6 +884,8 @@ App = createComp do
 		@albums = {}
 		@models = {}
 		@tags = {}
+		@recents = []
+		@recentsSize = 0
 		@preloadPhotoNum = 20
 		@input = void
 		@qrcode = void
@@ -1016,15 +1018,16 @@ App = createComp do
 		if index >= 0
 			@recents.splice index, 1
 		@recents.unshift album
-		if @recents.length > 1000
+		if @recents.length > 10000
 			@recents.pop!
 		@saveRecents!
 
 	loadRecents: !->
 		@recents = []
-		if localStorage.jmtRecents
+		@recentsSize = 0
+		if text = localStorage.jmtRecents
 			try
-				data = JSON.parse localStorage.jmtRecents
+				data = JSON.parse text
 				for [name, thumb] in data
 					if thumb
 						for k, val of @compressMap
@@ -1032,6 +1035,7 @@ App = createComp do
 					album = @createAlbum name, thumb
 					@albums[name] = album
 					@recents.push album
+				@recentsSize = text.length
 
 	saveRecents: !->
 		data = @recents.map (album) ~>
@@ -1041,8 +1045,9 @@ App = createComp do
 					thumb .= replace val, k
 				item.1 = thumb
 			item
-		data = JSON.stringify data
-		localStorage.jmtRecents = data
+		text = JSON.stringify data
+		@recentsSize = text.length
+		localStorage.jmtRecents = text
 
 	mark: (x, y, width, height) !->
 		if x instanceof Element
