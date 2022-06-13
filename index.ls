@@ -121,7 +121,7 @@ function createPage props
 														text = await navigator.clipboard.readText!
 														recents = await app.parseRecents text
 														for recent in recents
-															app.addRecent recent
+															app.addRecent recent, yes
 														@saveRecents!
 														alert "Đã thêm các mục vào gần đây thành công"
 														m.redraw!
@@ -1048,14 +1048,15 @@ App = createComp do
 			@albums[name] = album
 		album
 
-	addRecent: (album) !->
+	addRecent: (album, noSave) !->
 		index = @recents.indexOf album
 		if index >= 0
 			@recents.splice index, 1
 		@recents.unshift album
 		if @recents.length > 10000
 			@recents.pop!
-		@saveRecents!
+		unless noSave
+			@saveRecents!
 
 	parseRecents: (text) ->
 		recents = []
