@@ -123,6 +123,7 @@ function createPage props
 														for recent in recents
 															app.addRecent recent
 														@saveRecents!
+														m.redraw!
 													catch
 														alert e.message
 											"Nhập thêm gần đây"
