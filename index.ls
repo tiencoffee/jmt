@@ -102,7 +102,7 @@ function createPage props
 													if text = prompt "Nhập phạm vi muốn sao chép (start end):"
 														if /^\d+ \d+$/test text
 															[start, end] = text.split " "
-															recents = app.recents.slice start, end
+															recents = app.recents.slice start, end .reverse!
 															if recents.length
 																text = await app.stringifyRecents recents
 																await navigator.clipboard.writeText text
