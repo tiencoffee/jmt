@@ -134,7 +134,11 @@ function createPage props
 											onclick: !~>
 												app.push Recent
 											"Gần đây"
-										m \.c4
+										m \.c4.ccm.h80p.px2,
+											m \div,
+												new Date!toLocaleTimeString!slice 0 -3
+											m \div,
+												(new Date performance.now! - 288e5)toLocaleTimeString!slice 0 -3
 										m \.c4.rcm.h80p.px2.act,
 											disabled: not window.BarcodeDetector
 											onclick: !~>
