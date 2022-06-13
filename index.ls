@@ -98,8 +98,8 @@ function createPage props
 										m \.c4
 										m \.c4.rcm.h80p.px2.act,
 											onclick: !~>
-												text = await app.stringifyRecents @recents
 												try
+													text = await app.stringifyRecents app.recents
 													await navigator.clipboard.writeText text
 													alert "Đã sao chép gần đây"
 												catch
@@ -173,7 +173,7 @@ function createPage props
 									if el = el.closest \.toe
 										app.mark el
 										el.click!
-							@navMenuView?! or "^"
+							@navMenuView?! or (@isOpenMenu and "v" or "^")
 						m \.c.py4.act,
 							class: app.class do
 								"toe": @isOpenMenu
