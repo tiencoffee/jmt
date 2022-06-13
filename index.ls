@@ -122,7 +122,7 @@ function createPage props
 													if confirm "Chắc chắn muốn nhập thêm #{recents.length} album đã sao chép vào gần đây?"
 														for recent in recents
 															app.addRecent recent, yes
-														@saveRecents!
+														app.saveRecents!
 														await navigator.clipboard.writeText ""
 														alert "Đã thêm #{recents.length} album vào gần đây thành công"
 														m.redraw!
