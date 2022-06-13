@@ -99,9 +99,18 @@ function createPage props
 										m \.c4.rcm.h80p.px2.act,
 											onclick: !~>
 												try
-													text = await app.stringifyRecents app.recents
-													await navigator.clipboard.writeText text
-													alert "Đã sao chép gần đây"
+													if text = prompt "Nhập phạm vi muốn sao chép (start end):"
+														if /^\d+ \d+$/test text
+															[start, end] = text.split " "
+															recents = app.recents.slice start, end
+															if recents.length
+																text = await app.stringifyRecents recents
+																await navigator.clipboard.writeText text
+																alert "Đã sao chép gần đây"
+															else
+																alert "Phạm vi nằm ngoài danh sách"
+														else
+															alert "Cú pháp không đúng"
 												catch
 													alert e.message
 											"Sao chép gần đây"
@@ -800,14 +809,16 @@ Recent = createPage do
 				"Gần đây: #{app.recents.length} album (#{Math.floor app.recentsSize / 1024} KiB)"
 			if app.recents.length
 				m \.row.wra.pb8,
-					app.recents.map (album) ~>
-						m \.c3.ar69,
+					app.recents.map (album, i) ~>
+						m \.rel.c3.ar69,
 							onclick: (event) !~>
 								app.push Album,
 									album: album
 							m \img.w100.h100.obct,
 								src: album.thumb
 								loading: \lazy
+							m \.abs.r0.b0.p1.bg2,
+								i
 			else
 				m \.c.ccm,
 					"Không có album nào"
